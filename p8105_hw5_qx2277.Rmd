@@ -5,3 +5,51 @@ date: "`r Sys.Date()`"
 output: github_document
 ---
 
+```{r}
+library(tidyverse)
+library(broom)
+```
+
+```{r}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE
+)
+
+set.seed(8105)
+```
+
+
+```{r}
+longitudinal_df =
+  tibble(
+    file_name = list.files("data", pattern = "\\.csv$"),
+    file_path = str_c("data/", file_name)
+  ) |>
+  mutate(
+    subject_data = map(file_path, \(path) read_csv(path, show_col_types = FALSE))
+  ) |>
+  unnest(subject_data) |>
+  mutate(
+    subject_id = str_remove(file_name, "\\.csv$"),
+    arm = case_when(
+      str_detect(subject_id, "^con") ~ "Control",
+      str_detect(subject_id, "^exp") ~ "Experimental"
+    )
+  ) |>
+  pivot_longer(
+    cols = starts_with("week_"),
+    names_to = "week",
+    values_to = "outcome",
+    names_prefix = "week_"
+  ) |>
+  mutate(
+    week = as.numeric(week),
+    arm = factor(arm, levels = c("Control", "Experimental"))
+  ) |>
+  select(subject_id, arm, week, outcome) |>
+  arrange(arm, subject_id, week)
+
+longitudinal_df
+```
