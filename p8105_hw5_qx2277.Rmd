@@ -53,3 +53,22 @@ longitudinal_df =
 
 longitudinal_df
 ```
+```{r}
+longitudinal_df |>
+  ggplot(aes(x = week, y = outcome, group = subject_id)) +
+  geom_line(aes(color = arm), alpha = 0.7, linewidth = 0.8) +
+  geom_point(aes(color = arm), size = 1.5) +
+  facet_wrap(~ arm) +
+  scale_x_continuous(breaks = 1:8) +
+  labs(
+    title = "Longitudinal Outcomes by Treatment Arm",
+    x = "Week",
+    y = "Observed Outcome",
+    color = "Treatment Arm"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "none"
+  )
+```
+The control group shows relatively stable outcomes over the eight weeks, with individual fluctuations but no clear overall trend. In contrast, most subjects in the experimental group exhibit increasing outcomes over time. Although there is variability between subjects in both groups, the experimental group demonstrates a clear positive trend compared with the control group.
