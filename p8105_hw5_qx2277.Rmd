@@ -5,6 +5,7 @@ date: "`r Sys.Date()`"
 output: github_document
 ---
 
+#Q2
 ```{r}
 library(tidyverse)
 library(broom)
@@ -72,3 +73,38 @@ longitudinal_df |>
   )
 ```
 The control group shows relatively stable outcomes over the eight weeks, with individual fluctuations but no clear overall trend. In contrast, most subjects in the experimental group exhibit increasing outcomes over time. Although there is variability between subjects in both groups, the experimental group demonstrates a clear positive trend compared with the control group.
+
+
+#Q3
+```{r}
+# Simulate one dataset and perform a one-sample t-test
+sim_t_test = function(mu, n = 30, sigma = 5) {
+
+  sim_data = tibble(
+    x = rnorm(n, mean = mu, sd = sigma)
+  )
+
+  t.test(sim_data$x, mu = 0) |>
+    broom::tidy() |>
+    select(estimate, p.value)
+
+}
+```
+
+```{r}
+# Run 5000 simulations for each true mean
+sim_results =
+  expand_grid(
+    mu = 0:6,
+    iter = 1:5000
+  ) |>
+  mutate(
+    test_results = map(mu, sim_t_test)
+  ) |>
+  unnest(test_results) |>
+  mutate(
+    reject_null = p.value < 0.05
+  )
+
+sim_results
+```
