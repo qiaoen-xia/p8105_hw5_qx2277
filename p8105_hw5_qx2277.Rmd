@@ -55,6 +55,7 @@ longitudinal_df =
 longitudinal_df
 ```
 ```{r}
+#spaghetti plot
 longitudinal_df |>
   ggplot(aes(x = week, y = outcome, group = subject_id)) +
   geom_line(aes(color = arm), alpha = 0.7, linewidth = 0.8) +
@@ -72,6 +73,7 @@ longitudinal_df |>
     legend.position = "none"
   )
 ```
+
 The control group shows relatively stable outcomes over the eight weeks, with individual fluctuations but no clear overall trend. In contrast, most subjects in the experimental group exhibit increasing outcomes over time. Although there is variability between subjects in both groups, the experimental group demonstrates a clear positive trend compared with the control group.
 
 
@@ -109,7 +111,6 @@ sim_results =
 sim_results
 ```
 ```{r}
-
 power_results =
   sim_results |>
   group_by(mu) |>
@@ -140,4 +141,56 @@ power_results |>
     plot.title = element_text(face = "bold")
   )
 ```
+
 Statistical power increases as the true mean moves farther away from the null value of zero. When μ = 0, the rejection proportion is approximately 0.05, consistent with the significance level. Power increases from 0.195 at μ = 1 to 0.879 at μ = 3, and approaches 1 when μ ≥ 4. With sample size and standard deviation held constant, larger effect sizes are more likely to be detected.
+
+
+```{r}
+estimate_results =
+  sim_results |>
+  group_by(mu) |>
+  summarize(
+    overall_mean = mean(estimate),
+    rejected_mean = mean(estimate[reject_null]),
+    .groups = "drop"
+  )
+
+estimate_results
+```
+```{r}
+estimate_results |>
+  pivot_longer(
+    cols = c(overall_mean, rejected_mean),
+    names_to = "estimate_type",
+    values_to = "mean_estimate"
+  ) |>
+  mutate(
+    estimate_type = recode(
+      estimate_type,
+      overall_mean = "All Samples",
+      rejected_mean = "Rejected Samples Only"
+    )
+  ) |>
+  ggplot(aes(x = mu, y = mean_estimate, color = estimate_type)) +
+  geom_abline(
+    slope = 1,
+    intercept = 0,
+    linetype = "dashed",
+    color = "gray50"
+  ) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 2.5) +
+  scale_x_continuous(breaks = 0:6) +
+  labs(
+    title = "Mean Estimates by True Mean",
+    x = "True Mean (mu)",
+    y = "Average Estimated Mean",
+    color = "Sample Selection"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom"
+  )
+```
+
+The average estimates across all samples closely follow the true means, consistent with the unbiasedness of the sample mean. However, when only samples that reject the null hypothesis are considered, the average estimates tend to exceed the true means, particularly when the effect size is small and power is low. This occurs because statistically significant results are more likely to arise from samples with estimates farther from zero, introducing selection bias. As power approaches one, nearly all samples reject the null hypothesis, and the conditional average becomes closer to the true mean. At μ = 0, the conditional average is theoretically zero due to the symmetry of the two-sided test, although some random variation is observed in the simulation.
