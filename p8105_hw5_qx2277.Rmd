@@ -108,3 +108,36 @@ sim_results =
 
 sim_results
 ```
+```{r}
+
+power_results =
+  sim_results |>
+  group_by(mu) |>
+  summarize(
+    power = mean(reject_null),
+    .groups = "drop"
+  )
+
+power_results
+```
+```{r}
+power_results |>
+  ggplot(aes(x = mu, y = power)) +
+  geom_line(color = "steelblue", linewidth = 1) +
+  geom_point(color = "steelblue", size = 2.5) +
+  scale_x_continuous(breaks = 0:6) +
+  scale_y_continuous(
+    limits = c(0, 1),
+    breaks = seq(0, 1, 0.2)
+  ) +
+  labs(
+    title = "Statistical Power by True Mean",
+    x = "True Mean (mu)",
+    y = "Power"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold")
+  )
+```
+Statistical power increases as the true mean moves farther away from the null value of zero. When μ = 0, the rejection proportion is approximately 0.05, consistent with the significance level. Power increases from 0.195 at μ = 1 to 0.879 at μ = 3, and approaches 1 when μ ≥ 4. With sample size and standard deviation held constant, larger effect sizes are more likely to be detected.
